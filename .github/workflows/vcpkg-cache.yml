@@ -25,23 +25,11 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Build vcpkg using Python script
+      - name: Build vcpkg
         run: python3 ${{ github.workspace }}/Toolchain/buildVcpkg.py
-
-      - name: Configure NuGet auth
-        shell: pwsh
-        run: |
-          $vcpkg = "${{ github.workspace }}/Build/vcpkg/vcpkg.exe"
-          &$vcpkg fetch nuget `
-            sources add `
-            -Source "$env:FEED_URL" `
-            -StorePasswordInClearText `
-            -Name GitHubPackages `
-            -UserName "$env:USERNAME" `
-            -Password "${{ secrets.GITHUB_TOKEN }}"
-          &$vcpkg fetch nuget `
-            setapikey "${{ secrets.GITHUB_TOKEN }}" `
-            -Source "$env:FEED_URL"
 
       - name: Install dependencies
         run: ${{ github.workspace }}/Build/vcpkg/vcpkg.exe install --triplet x64-windows
+
+      - name: Upload binary cache to NuGet
+        run: ${{ github.workspace }}/Build/vcpkg/vcpkg.exe cache --nuget --nuget-source ${{ env.FEED_URL }} --nuget-user ${{ env.USERNAME }} --nuget-password ${{ secrets.GITHUB_TOKEN }}
