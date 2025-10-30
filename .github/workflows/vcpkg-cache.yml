@@ -15,25 +15,49 @@ jobs:
     env:
       FEED_URL: https://nuget.pkg.github.com/sakgoyal/index.json
       USERNAME: sakgoyal
-      VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
+      VCPKG_EXE: ${{ github.workspace }}/Build/vcpkg/vcpkg
       VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/sakgoyal/index.json,readwrite"
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full repo for vcpkg.json
 
-      # Clone vcpkg
-      - name: Download vcpkg
-        run: git clone https://github.com/microsoft/vcpkg.git vcpkg
+      - name: Prepare build directory
+        run: mkdir Build
+
+      - name: Read builtin-baseline from vcpkg.json
+        id: baseline
+        run: |
+          $vcpkg_json = Get-Content "${{ github.workspace }}/vcpkg.json" | ConvertFrom-Json
+          echo "baseline=$($vcpkg_json.builtin-baseline)" >> $GITHUB_OUTPUT
+
+      - name: Clone vcpkg at specific baseline
+        shell: pwsh
+        run: |
+          $vcpkg_dir = "${{ github.workspace }}/Build/vcpkg"
+          git clone https://github.com/microsoft/vcpkg.git $vcpkg_dir --depth 1 --branch "${{ steps.baseline.outputs.baseline }}" || `
+          (git -C $vcpkg_dir fetch origin ${{ steps.baseline.outputs.baseline }} --depth 1 && git -C $vcpkg_dir checkout ${{ steps.baseline.outputs.baseline }})
 
       - name: Bootstrap vcpkg
         shell: pwsh
-        run: ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.bat
+        run: |
+          $bootstrap = "${{ github.workspace }}/Build/vcpkg/bootstrap-vcpkg.bat"
+          &$bootstrap -disableMetrics
 
       - name: Configure NuGet auth
+        shell: pwsh
         run: |
-          $nuget = & "$env:GITHUB_WORKSPACE\vcpkg\vcpkg.exe" fetch nuget | Select-String "nuget.exe" | ForEach-Object { $_.ToString().Trim() }
-          & $nuget sources add -Source "$env:FEED_URL" -Name "GitHubPackages" -UserName "$env:USERNAME" -Password "${{ secrets.GITHUB_TOKEN }}" -StorePasswordInClearText
-          & $nuget setapikey "${{ secrets.GITHUB_TOKEN }}" -Source "$env:FEED_URL"
+          .$($env:VCPKG_EXE) fetch nuget `
+            sources add `
+            -Source "$env:FEED_URL" `
+            -StorePasswordInClearText `
+            -Name GitHubPackages `
+            -UserName "$env:USERNAME" `
+            -Password "${{ secrets.GITHUB_TOKEN }}"
+          .$($env:VCPKG_EXE) fetch nuget `
+            setapikey "${{ secrets.GITHUB_TOKEN }}" `
+            -Source "$env:FEED_URL"
 
       - name: Install dependencies (build + upload binaries)
-        run: .\vcpkg\vcpkg.exe install --triplet x64-windows
+        run: .\Build\vcpkg\vcpkg.exe install --triplet x64-windows
