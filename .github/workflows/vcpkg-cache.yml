@@ -16,9 +16,19 @@ jobs:
       FEED_URL: https://nuget.pkg.github.com/sakgoyal/index.json
       USERNAME: sakgoyal
       VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/sakgoyal/index.json,readwrite"
+      X_VCPKG_ASSET_SOURCES: "clear;x-azurl,https://vcpkg-cache.app.ladybird.org/ladybird/source-assets/,,read"
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Cache vcpkg build
+        id: cache-vcpkg
+        uses: actions/cache@v4
+        with:
+          path: Build/vcpkg
+          key: vcpkg-build-${{ hashFiles('Toolchain/vcpkg-commit.txt') }}
+          restore-keys: |
+            vcpkg-build-
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -26,6 +36,7 @@ jobs:
           python-version: "3.11"
 
       - name: Build vcpkg
+        if: steps.cache-vcpkg.outputs.cache-hit != 'true'
         run: python3 ${{ github.workspace }}/Toolchain/buildVcpkg.py
 
       - name: Configure NuGet feed for vcpkg
