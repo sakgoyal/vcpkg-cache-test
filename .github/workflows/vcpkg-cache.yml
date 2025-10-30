@@ -1,10 +1,13 @@
 permissions:
   packages: write
-  contents: read   # typically required too
-
+  contents: read
+on:
+  push:
+    branches:
+      - master
 jobs:
   build:
-    runs-on: windows-latest   # or windows-latest etc
+    runs-on: windows-latest
     env:
       FEED_URL: https://nuget.pkg.github.com/sakgoyal/index.json
       VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
@@ -27,4 +30,4 @@ jobs:
           $(${{ env.VCPKG_EXE }} fetch nuget) setapikey "${{ secrets.GITHUB_TOKEN }}" -Source "${{ env.FEED_URL }}"
       - name: Install dependencies (and thereby build/upload binaries)
         run: |
-          ${{ env.VCPKG_EXE }} install --triplet x64-windows   # example triplet
+          ${{ env.VCPKG_EXE }} install --triplet x64-windows
