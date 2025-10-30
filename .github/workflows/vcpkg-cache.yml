@@ -15,41 +15,33 @@ jobs:
     env:
       FEED_URL: https://nuget.pkg.github.com/sakgoyal/index.json
       USERNAME: sakgoyal
-      VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
       VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/sakgoyal/index.json,readwrite"
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read builtin-baseline from vcpkg.json
-        id: baseline
-        run: |
-          $vcpkg_json = Get-Content "${{ github.workspace }}/vcpkg.json" | ConvertFrom-Json
-          echo "baseline=$($vcpkg_json['builtin-baseline'])" >> $GITHUB_OUTPUT
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-
-      - name: Clone vcpkg at specific baseline
-        shell: pwsh
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git vcpkg --depth 1 --branch "${{ steps.baseline.outputs.baseline }}"
-
-      - name: Bootstrap vcpkg
-        shell: pwsh
-        run: ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.bat
+      - name: Build vcpkg using Python script
+        run: python3 ${{ github.workspace }}/Toolchain/buildVcpkg.py
 
       - name: Configure NuGet auth
         shell: pwsh
         run: |
-          .$($env:VCPKG_EXE) fetch nuget `
+          $vcpkg = "${{ github.workspace }}/Build/vcpkg/vcpkg.exe"
+          &$vcpkg fetch nuget `
             sources add `
             -Source "$env:FEED_URL" `
             -StorePasswordInClearText `
             -Name GitHubPackages `
             -UserName "$env:USERNAME" `
             -Password "${{ secrets.GITHUB_TOKEN }}"
-          .$($env:VCPKG_EXE) fetch nuget `
+          &$vcpkg fetch nuget `
             setapikey "${{ secrets.GITHUB_TOKEN }}" `
             -Source "$env:FEED_URL"
 
-      - name: Install dependencies (build + upload binaries)
-        run: .\vcpkg\vcpkg.exe install --triplet x64-windows
+      - name: Install dependencies
+        run: ${{ github.workspace }}/Build/vcpkg/vcpkg.exe install --triplet x64-windows
