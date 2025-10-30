@@ -28,6 +28,23 @@ jobs:
       - name: Build vcpkg
         run: python3 ${{ github.workspace }}/Toolchain/buildVcpkg.py
 
+      - name: Configure NuGet feed for vcpkg
+        shell: pwsh
+        run: |
+          # Fetch NuGet client from vcpkg
+          $nugetExe = & "${{ github.workspace }}/Build/vcpkg/vcpkg.exe" fetch nuget | Select-Object -Last 1
+          # Add GitHub Packages source with credentials
+          & $nugetExe sources add `
+            -Name GitHubPackages `
+            -Source $env:FEED_URL `
+            -StorePasswordInClearText `
+            -UserName $env:USERNAME `
+            -Password "${{ secrets.GITHUB_TOKEN }}"
+          # Set API key
+          & $nugetExe setapikey `
+            "${{ secrets.GITHUB_TOKEN }}" `
+            -Source $env:FEED_URL
+
       - name: Install dependencies
         run: ${{ github.workspace }}/Build/vcpkg/vcpkg.exe install --triplet x64-windows
 
