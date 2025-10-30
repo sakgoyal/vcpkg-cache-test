@@ -1,43 +1,6 @@
 {
   "builtin-baseline": "b0b3de1b1a0aa4b8f2822460aa7f42f991629b3f",
   "dependencies": [
-    {
-      "name": "angle",
-      "platform": "osx",
-      "features": [
-        "metal"
-      ]
-    },
-    {
-      "name": "angle",
-      "platform": "linux | windows | android | freebsd"
-    },
-    {
-      "name": "cpptrace",
-      "platform": "linux | windows | osx"
-    },
-    {
-      "name": "curl",
-      "default-features": false,
-      "features": [
-        "brotli",
-        "non-http",
-        "http2",
-        "http3",
-        "openssl",
-        "websockets",
-        "zstd"
-      ]
-    },
-    {
-      "name": "dbus",
-      "default-features": false,
-      "platform": "linux | freebsd"
-    },
-    {
-      "name": "dirent",
-      "platform": "windows"
-    },
     "fast-float",
     {
       "name": "ffmpeg",
@@ -66,27 +29,9 @@
         "icu"
       ]
     },
-    {
-      "name": "harfbuzz",
-      "platform": "osx",
-      "features": [
-        "coretext",
-        "icu"
-      ]
-    },
     "icu",
     "libjpeg-turbo",
     "libjxl",
-    {
-      "name": "libpng",
-      "features": [
-        "apng"
-      ]
-    },
-    {
-      "name": "libproxy",
-      "platform": "!(android | freebsd)"
-    },
     {
       "name": "libavif",
       "features": [
@@ -94,18 +39,6 @@
       ]
     },
     "libtommath",
-    {
-      "name": "libwebp",
-      "features": [
-        "anim",
-        "libwebpmux",
-        "simd"
-      ]
-    },
-    {
-      "name": "mman",
-      "platform": "windows"
-    },
     "libxml2",
     "openssl",
     {
@@ -158,21 +91,7 @@
       "name": "pthread",
       "platform": "windows"
     },
-    {
-      "name": "sdl3",
-      "default-features": false
-    },
     "simdutf",
-    {
-      "name": "skia",
-      "platform": "osx",
-      "features": [
-        "metal",
-        "fontconfig",
-        "harfbuzz",
-        "icu"
-      ]
-    },
     {
       "name": "skia",
       "platform": "linux | freebsd | openbsd | windows",
@@ -181,13 +100,6 @@
         "fontconfig",
         "harfbuzz",
         "icu",
-        "vulkan"
-      ]
-    },
-    {
-      "name": "skia",
-      "platform": "android",
-      "features": [
         "vulkan"
       ]
     },
