@@ -1,33 +1,33 @@
-permissions:
-  packages: write
-  contents: read
+name: vcpkg binary cache (Windows)
+
 on:
   push:
     branches:
       - master
+
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     runs-on: windows-latest
     env:
       FEED_URL: https://nuget.pkg.github.com/sakgoyal/index.json
-      VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
       USERNAME: sakgoyal
-      VCPKG_BINARY_SOURCES: "clear;nuget,${{ env.FEED_URL }},readwrite"
+      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/sakgoyal/index.json,readwrite"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
       - name: Bootstrap vcpkg
+        run: .\vcpkg\bootstrap-vcpkg.bat
+
+      - name: Configure NuGet auth
         run: |
-          ./vcpkg/bootstrap-vcpkg.sh   # or the .bat on Windows
-      - name: Add NuGet source
-        run: |
-          $(${{ env.VCPKG_EXE }} fetch nuget) sources add \
-            -Source "${{ env.FEED_URL }}" \
-            -Name GitHubPackages \
-            -UserName "${{ env.USERNAME }}" \
-            -Password "${{ secrets.GITHUB_TOKEN }}" \
-            -StorePasswordInClearText
-          $(${{ env.VCPKG_EXE }} fetch nuget) setapikey "${{ secrets.GITHUB_TOKEN }}" -Source "${{ env.FEED_URL }}"
-      - name: Install dependencies (and thereby build/upload binaries)
-        run: |
-          ${{ env.VCPKG_EXE }} install --triplet x64-windows
+          $nuget = & "$env:GITHUB_WORKSPACE\vcpkg\vcpkg.exe" fetch nuget | Select-String "nuget.exe" | ForEach-Object { $_.ToString().Trim() }
+          & $nuget sources add -Source "$env:FEED_URL" -Name "GitHubPackages" -UserName "$env:USERNAME" -Password "${{ secrets.GITHUB_TOKEN }}" -StorePasswordInClearText
+          & $nuget setapikey "${{ secrets.GITHUB_TOKEN }}" -Source "$env:FEED_URL"
+
+      - name: Install dependencies (build + upload binaries)
+        run: .\vcpkg\vcpkg.exe install --triplet x64-windows
