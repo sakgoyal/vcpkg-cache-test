@@ -30,7 +30,8 @@ jobs:
         id: baseline
         run: |
           $vcpkg_json = Get-Content "${{ github.workspace }}/vcpkg.json" | ConvertFrom-Json
-          echo "baseline=$($vcpkg_json.builtin-baseline)" >> $GITHUB_OUTPUT
+          echo "baseline=$($vcpkg_json['builtin-baseline'])" >> $GITHUB_OUTPUT
+
 
       - name: Clone vcpkg at specific baseline
         shell: pwsh
