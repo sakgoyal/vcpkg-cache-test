@@ -60,6 +60,3 @@ jobs:
 
       - name: Install dependencies
         run: ${{ github.workspace }}/Build/vcpkg/vcpkg.exe install --triplet x64-windows
-
-      - name: Upload binary cache to NuGet
-        run: ${{ github.workspace }}/Build/vcpkg/vcpkg.exe cache --nuget --nuget-source ${{ env.FEED_URL }} --nuget-user ${{ env.USERNAME }} --nuget-password ${{ secrets.GITHUB_TOKEN }}
