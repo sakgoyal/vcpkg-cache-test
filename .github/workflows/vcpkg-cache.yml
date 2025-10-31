@@ -25,10 +25,12 @@ jobs:
         id: cache-vcpkg
         uses: actions/cache@v4
         with:
-          path: Build/vcpkg
-          key: vcpkg-build-${{ hashFiles('Toolchain/vcpkg-commit.txt') }}
+          path: |
+            ${{ github.workspace }}/Build/vcpkg
+            ${{ github.workspace }}/Build/vcpkg_installed
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}
           restore-keys: |
-            vcpkg-build-
+            ${{ runner.os }}-vcpkg-
 
       - name: Set up Python
         uses: actions/setup-python@v4
