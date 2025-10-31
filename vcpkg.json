@@ -91,17 +91,6 @@
       "platform": "windows"
     },
     "simdutf",
-    {
-      "name": "skia",
-      "platform": "linux | freebsd | openbsd | windows",
-      "features": [
-        "freetype",
-        "fontconfig",
-        "harfbuzz",
-        "icu",
-        "vulkan"
-      ]
-    },
     "sqlite3",
     "vulkan",
     {
